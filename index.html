@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>モーションキャプチャ</title>
+  <style>
+    #mov {
+      border: 1px solid gray;
+    }
+
+    #capture {
+      width: 300px;
+      height: 50px;
+    }
+  </style>
+</head>
+<body>
+  <h1>モーションキャプチャ</h1>
+  <section>
+    <!-- 動画を再生する -->
+    <video id="mov" src="./video.mp4" controls="controls" width="300" height="150"></video>
+    <!-- キャプチャボタンを押すとcanvasに描画する -->
+    <button id="capture">キャプチャ</button>
+    <!-- canvasに描画されたデータを保存する -->
+    <canvas id="draw"></canvas>
+    <button id="save">保存</button>
+  </section>
+  <script>
+    // Base64データをBlobデータに変換する関数
+    function toBlob(base64) {
+      var bin = atob(base64.replace(/^.*,/, ''));
+      var buffer = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) {
+        buffer[i] = bin.charCodeAt(i);
+      }
+      var blob = new Blob([buffer.buffer], {type: 'image/png'});
+      return blob;
+    }
+
+    // Canvasを画像としてダウンロードする関数
+    function saveCanvas(canvas_id) {
+      var canvas = document.getElementById(canvas_id);
+      var base64 = canvas.toDataURL('image/png'); // Base64形式のデータを取得
+      var blob = toBlob(base64); // Blob形式のデータに変換
+      var url = URL.createObjectURL(blob); // URLに変換
+      var a = document.createElement('a'); // <a>タグを作成
+      a.href = url; // href属性にURLをセット
+      a.download = 'canvas.png'; // download属性にファイル名をセット
+      a.click(); // clickイベントを発火させる
+    }
+
+    // 動画を取得
+    var video = document.getElementById('mov');
+    // キャプチャボタンを取得
+    var capture = document.getElementById('capture');
+    // canvasを取得
+    var canvas = document.getElementById('draw');
+
+    // 動画が読み込まれてから処理を開始
+    video.onloadedmetadata = function() {
+      // canvasの幅と高さを動画のアスペクト比に合わせる
+      let canvasSizeX = 300; // canvasの幅
+      let canvasSizeY = (canvasSizeX * video.videoHeight) / video.videoWidth; // canvasの高さ
+
+      // キャプチャボタンにクリックイベントリスナーを登録
+      capture.addEventListener('click', function() {
+        console.log('pushed capture');
+        // canvasに2Dコンテキストを取得
+        var ctx = canvas.getContext('2d');
+        // videoタグの「今」の状態をcanvasに描写
+        ctx.drawImage(video, 0, 0, canvasSizeX, canvasSizeY);
+        console.log(canvas.toDataURL()); // base64でデータ化
+      });
+    };
+
+    // 保存ボタンを取得
+    var save = document.getElementById('save');
+    // 保存ボタンにクリックイベントリスナーを登録
+    save.addEventListener('click', function() {
+      saveCanvas('draw');
+    });
+  </script>
+</body>
+</html>
